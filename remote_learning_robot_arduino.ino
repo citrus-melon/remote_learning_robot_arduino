@@ -2,7 +2,6 @@
 #include <Stepper.h>
 
 #include <ESP8266WiFi.h>
-#include <ESP8266WiFiMulti.h>
 
 #include <ArduinoJson.h>
 
@@ -11,15 +10,9 @@
 
 
 const uint32_t connectTimeoutMs = 10000;
-// const int ledPin = LED_BUILTIN;
 
 Stepper cameraStepper(200, 13, 15);
-ESP8266WiFiMulti wiFiMulti;
 SocketIOclient socketIO;
-
-// int ledState = LOW;
-// unsigned long previousMillis = 0;
-// int ledInterval = 1000;
 
 int currentRotation = 0;
 int rotationTarget = 0;
@@ -84,15 +77,4 @@ void loop() {
     currentRotation--; 
   }
 
-  // LED blinking
-  // unsigned long currentMillis = millis();
-  // if (currentMillis - previousMillis >= ledInterval) {
-  //   previousMillis = currentMillis;
-  //   if (ledState == LOW) {
-  //     ledState = HIGH;
-  //   } else {
-  //     ledState = LOW;
-  //   }
-  //   digitalWrite(ledPin, ledState);
-  // }
 }
