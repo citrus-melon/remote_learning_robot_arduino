@@ -1,5 +1,5 @@
 #include "credentials.h"
-#include <Stepper.h>
+#include <AccelStepper.h>
 
 #include <ESP8266WiFi.h>
 
@@ -11,11 +11,9 @@
 
 const uint32_t connectTimeoutMs = 10000;
 
-Stepper cameraStepper(200, 13, 15);
+AccelStepper cameraStepper(AccelStepper::DRIVER, 13, 15);
 SocketIOclient socketIO;
 
-int currentRotation = 0;
-int rotationTarget = 0;
 bool offsetRecieved = false;
 
 void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length) {
@@ -34,12 +32,12 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             deserializeJson(data, payload);
             const String eventType = data[0];
             if (!eventType.equals("rotationUpdate")) break;
-            rotationTarget = data[1];
+            long newPosition = data[1];
+            cameraStepper.moveTo(newPosition);
             if (!offsetRecieved) {
               offsetRecieved = true;
-              currentRotation = rotationTarget;
+              cameraStepper.setCurrentPosition(newPosition);
             }
-            Serial.println(rotationTarget);
             break;
     }
 }
@@ -48,7 +46,8 @@ void setup() {
   Serial.begin(115200);
   Serial.println();
 
-  cameraStepper.setSpeed(100);
+  cameraStepper.setAcceleration(600);
+  cameraStepper.setMaxSpeed(200);
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -68,13 +67,5 @@ void setup() {
 
 void loop() {
   socketIO.loop();
-
-  if (currentRotation < rotationTarget) {
-    cameraStepper.step(1);
-    currentRotation++;
-  } else if (currentRotation > rotationTarget) {
-    cameraStepper.step(-1);
-    currentRotation--; 
-  }
-
+  cameraStepper.run();
 }
